@@ -71,7 +71,7 @@ class OrderItem(models.Model):
     unit_price = models.DecimalField(max_digits=8,decimal_places=2)
 
 class Cart(models.Model):
-    id = models.UUIDField(default=uuid4)
+    id = models.UUIDField(default=uuid4,primary_key=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class CartItem(models.Model):
