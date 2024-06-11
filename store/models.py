@@ -1,6 +1,7 @@
 from django.db import models
 from uuid import uuid4
 from django.contrib.auth.models import User
+from django.conf import settings
 # Create your models here.
 #Product
 class Collection(models.Model):
@@ -40,7 +41,7 @@ class Customer(models.Model):
         (SILVER_MEMBERSHIP,"SILVER"),
         (BRONZE_MEMBERSHIP,"Bronze")
     ]
-    user = models.ForeignKey(to=User,on_delete=models.CASCADE)
+    user = models.OneToOneField(to=settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     phone = models.CharField(max_length=20)
     birth_date = models.DateField(null=True)
     membership = models.CharField(max_length=1,choices=MEMBERSHIP_CHOICES,default=BRONZE_MEMBERSHIP)
