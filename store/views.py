@@ -105,7 +105,7 @@ class OrderViewSet(ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_staff:
             return Order.objects.all().order_by("id")
-        customer = get_object_or_404(Customer,user__id=self.request.user.id)
+        customer = Customer.objects.get(user__id=self.request.user.id)
         return Order.objects.filter(customer=customer)
     
     def get_serializer_class(self):

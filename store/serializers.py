@@ -3,6 +3,7 @@ from rest_framework.exceptions import ValidationError
 from django.db.transaction import atomic
 from store.models import Cart, CartItem, Collection, Order, OrderItem,Product,Customer
 from decimal import Decimal
+from store.signals import order_created
 
 #collection serializer
 class CollectionSerializer(serializers.ModelSerializer):
@@ -105,10 +106,10 @@ class AddOrderSerializer(serializers.Serializer):
 
     def validate_id(self,id):
         cart = Cart.objects.filter(id=id)
-        if cart is None:
-            raise ValidationError({"error":"Please enter a cart id"})
         if not cart.exists():
             raise ValidationError({"error":"The given cart id does not exists, please check again"})
+        if cart.first().cartitem_set.count() == 0:
+            raise ValidationError({"error":"A cart can't be empty, try adding products to it."})
         return id
 
 
@@ -122,6 +123,9 @@ class AddOrderSerializer(serializers.Serializer):
             orderitems_list = [OrderItem(order=order,product=item.product,quantity=item.quantity,unit_price=item.product.unit_price) for item in cart.cartitem_set.all()]
             OrderItem.objects.bulk_create(orderitems_list)
             cart.delete()
+
+            order_created.send_robust(sender=self.__class__,order=order)
+
             return order
     
 
