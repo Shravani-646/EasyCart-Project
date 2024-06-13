@@ -92,6 +92,9 @@ class CartItem(models.Model):
     product = models.ForeignKey(to=Product,on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
 
+    class Meta:
+        unique_together = ('cart', 'product')
+
 class Address(models.Model):
     street = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
