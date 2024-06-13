@@ -60,8 +60,15 @@ class CustomerViewSet(ModelViewSet):
     @action(detail=False,methods=["get","options","patch"],permission_classes=[IsAuthenticated])
     def me(self,request):
         customer = Customer.objects.get(user=self.request.user.id)
-        serializer = CustomerSerializer(instance=customer)
-        return Response(data=serializer.data,status=status.HTTP_200_OK)
+        if request.method == "GET":
+            serializer = CustomerSerializer(instance=customer)
+            return Response(data=serializer.data)
+        
+        elif request.method == "PATCH":
+            serializer = CustomerSerializer(instance=customer,data=request.data,partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data=serializer.data,status=status.HTTP_200_OK)
 
 
 class CartViewSet(RetrieveModelMixin,
@@ -109,7 +116,7 @@ class OrderViewSet(ModelViewSet):
         return OrderSerializer
     
     def get_permissions(self):
-        if self.request.method in ['PATCH', 'DELETE']:
+        if self.request.method in ['PATCH', 'DELETE','PUT']:
             return [IsAdminUser()]
         return [IsAuthenticated()]
     

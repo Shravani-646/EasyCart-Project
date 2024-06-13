@@ -1,6 +1,5 @@
 from django.db import models
 from uuid import uuid4
-from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib import admin
 # Create your models here.
@@ -39,7 +38,7 @@ class Customer(models.Model):
     BRONZE_MEMBERSHIP = 'B'
     MEMBERSHIP_CHOICES = [
         (GOLD_MEMBERSHIP,"Gold"),
-        (SILVER_MEMBERSHIP,"SILVER"),
+        (SILVER_MEMBERSHIP,"Silver"),
         (BRONZE_MEMBERSHIP,"Bronze")
     ]
     user = models.OneToOneField(to=settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
