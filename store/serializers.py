@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.db.transaction import atomic
-from store.models import Cart, CartItem, Collection, Order, OrderItem,Product,Customer
+from store.models import Cart, CartItem, Collection, Order, OrderItem,Product,Customer, ProductImage
 from decimal import Decimal
 from store.signals import order_created
 
@@ -16,10 +16,21 @@ class CollectionSerializer(serializers.ModelSerializer):
     def get_products_count(self,collection):
         return collection.product_set.count()
     
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ["id","image"]
+
+    def create(self, validated_data):
+        product_id = self.context["product_id"]
+        return ProductImage.objects.create(product_id=product_id,**validated_data)
+    
+
 class ProductSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(many=True,read_only=True)
     class Meta:
         model = Product 
-        fields = ["id","title","slug","description","unit_price","inventory","collection","price_with_tax"]
+        fields = ["id","title","slug","description","unit_price","inventory","collection","price_with_tax","images"]
 
     price_with_tax = serializers.SerializerMethodField(method_name="get_price_with_tax")
 

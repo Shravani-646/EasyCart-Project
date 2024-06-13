@@ -17,15 +17,29 @@ class CollectionAdmin(admin.ModelAdmin):
 
     def products_count(self,collection):
         return collection.product_set.count()
+    
+class ProductImageInline(admin.TabularInline):
+    model = models.ProductImage
+    readonly_fields = ['thumbnail']
+
+    def thumbnail(self, instance):
+        if instance.image.name != '':
+            return format_html(f'<img src="{instance.image.url}" class="thumbnail" />')
+        return ''
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
     autocomplete_fields = ["collection"]
+    prepopulated_fields = {
+        'slug':['title']
+    }
+
     list_display = ["title","unit_price","inventory_status","collection_title"]
     list_editable = ["unit_price"]
     list_per_page = 10
     list_select_related = ["collection"]
     list_filter = ["collection","last_update"]
     search_fields = ["title"]
+    inlines = [ProductImageInline]
 
     @admin.display(ordering="inventory")
     def inventory_status(self,product):
@@ -34,6 +48,11 @@ class ProductAdmin(admin.ModelAdmin):
     @admin.display(ordering="collection")
     def collection_title(self,product):
         return product.collection.title
+    
+    class Media:
+        css = {
+            'all': ['store/styles.css']
+        }
     
 class OrderItemInline(admin.TabularInline):
     autocomplete_fields = ['product']
@@ -74,3 +93,6 @@ class CustomerAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(orders_count=Count("order"))
+
+
+

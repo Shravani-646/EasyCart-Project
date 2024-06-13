@@ -14,4 +14,7 @@ cart_router.register("cartitems",viewset=views.CartItemViewSet,basename="cartite
 order_router = routers.NestedSimpleRouter(router,"orders",lookup="order")
 order_router.register("orderitems",viewset=views.OrderItemViewSet,basename="orderitems")
 
-urlpatterns = router.urls + cart_router.urls + order_router.urls
+product_router = routers.NestedSimpleRouter(router,"products",lookup="product")
+product_router.register("images",viewset=views.ProductImageViewSet,basename="images")
+
+urlpatterns = router.urls + cart_router.urls + order_router.urls + product_router.urls

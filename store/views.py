@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.filters import SearchFilter,OrderingFilter
-from store.models import Cart, CartItem, Collection, Customer, Order, OrderItem,Product
-from store.serializers import AddCartItemSerializer, AddOrderSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, OrderItemSerializer, OrderSerializer,ProductSerializer,CustomerSerializer, UpdateCartItemSerializer, UpdateOrderItemSerializer, UpdateOrderSerializer
+from store.models import Cart, CartItem, Collection, Customer, Order, OrderItem,Product, ProductImage
+from store.serializers import AddCartItemSerializer, AddOrderSerializer, CartItemSerializer, CartSerializer, CollectionSerializer, OrderItemSerializer, OrderSerializer, ProductImageSerializer,ProductSerializer,CustomerSerializer, UpdateCartItemSerializer, UpdateOrderItemSerializer, UpdateOrderSerializer
 from store.pagination import CustomPagePagination
 from store.permissions import IsAdminOrReadOnly
 from store.filters import ProductFilter
@@ -32,7 +32,7 @@ class CollectionViewSet(ModelViewSet):
     
 
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all().order_by("id")
+    queryset = Product.objects.prefetch_related("images").all().order_by("id")
     serializer_class = ProductSerializer
     pagination_class = CustomPagePagination
     permission_classes = [IsAdminOrReadOnly]
@@ -50,6 +50,15 @@ class ProductViewSet(ModelViewSet):
 
         return super().destroy(request, *args, **kwargs)
 
+class ProductImageViewSet(ModelViewSet):
+    serializer_class = ProductImageSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        return ProductImage.objects.filter(product_id=self.kwargs["product_pk"])
+    
+    def get_serializer_context(self):
+        return {"product_id":self.kwargs["product_pk"]}
 
 class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.all().order_by("id")
@@ -91,7 +100,7 @@ class CartItemViewSet(ModelViewSet):
         return {'cart_id':self.kwargs["cart_pk"]}
     
     def get_queryset(self):
-        return CartItem.objects.filter(cart_id=self.kwargs["cart_pk"])
+        return CartItem.objects.filter(cart_id=self.kwargs["cart_pk"]).select_related('product')
     
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -140,7 +149,7 @@ class OrderItemViewSet(ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
-        return OrderItem.objects.filter(order__id=self.kwargs["order_pk"])
+        return OrderItem.objects.filter(order__id=self.kwargs["order_pk"]).select_related("product")
     
     def get_serializer_context(self):
         return {'order_id':self.kwargs["order_pk"]}
